@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% load wagtailcore_tags %}
+
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block body_class %}template-blogpage{% endblock %}
+{% if page %}
+    {% for translation in page.get_translations.live %}
+        <a href="{% pageurl translation %}" rel="alternate" hreflang="{{ translation.locale.language_code }}">
+            {{ translation.locale.language_name_local }}
+        </a>
+    {% endfor %}
+{% endif %}
+
+{% if amp_mode_active %}
+    {% block content %}
+        <h1>{{ page.title }}</h1>
+        <p class="meta">{{ page.date }}</p>
+        {% with authors=page.authors.all %}
+            {% if authors %}
+                <h3>Posted by:</h3>
+                <ul>
+                    {% for author in authors %}
+                        <li style="display: inline">
+                            {% image author.author_image fill-40x60 style="vertical-align: middle" %}
+                            {{ author.name }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <div class="intro">{{ page.intro }}</div>
+
+        
+
+        {% for item in page.gallery_images.all %}
+            <div style="float: left; margin: 10px">
+                {% image item.image fill-320x240 %}
+                <p>{{ item.caption }}</p>
+            </div>
+        {% endfor %}
+
+        <p><a href="{{ page.get_parent.url }}">Return to blog</a></p>
+        {% with tags=page.tags.all %}
+            {% if tags %}
+                <div class="tags">
+                    <h3>Tags</h3>
+                    {% for tag in tags %}
+                    <a href="{% slugurl 'tags' %}?tag={{ tag }}"><button type="button">{{ tag }}</button></a>
+
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <article>
+            {% for block in page.body %}
+                {% if block.block_type == 'heading' %}
+                    <h1>{{ block.value }}</h1>
+                {% elif block.block_type == 'person' %}
+                    <div class="person">
+                        {% image block.value.photo width-400 %}
+                        <h2>{{ block.value.first_name }} {{ block.value.surname }}</h2>
+                        {{ block.value.biography }}
+                    </div>
+                {% elif block.block_type == 'gallery' %}
+                    <ul class="gallery">
+                        {% for img in block.value %}
+                            <li>{% image img width-400 %}</li>
+                        {% endfor %}
+                    </ul>
+                {% elif block.block_type == 'carousel' %}
+                    <ul class="carousel">
+                        {% for slide in block.value %}
+                            {% if slide.block_type == 'image' %}
+                                <li class="image">{% image slide.value width-200 %}</li>
+                            {% else %}
+                                <li class="video">{% include_block slide %}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <section class="block-{{ block.block_type }}">
+                        {% include_block block %}
+                    </section>
+                {% endif %}
+            {% endfor %}
+        </article>
+
+    {% endblock %}
+{% endif %}

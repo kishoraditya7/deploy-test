@@ -1,0 +1,12 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+
+<div class="person">
+    {% image value.photo width-400 %}
+    <h6>{{ value.first_name }} {{ value.surname }}</h6>
+
+    {% if request.user.is_authenticated %}
+        <a href="#">Contact this person</a>
+    {% endif %}
+
+    {{ value.biography }}
+</div>
